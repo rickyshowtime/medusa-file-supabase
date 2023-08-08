@@ -19,12 +19,13 @@ class SupabaseService extends FileService {
     this.project_ref = options.project_ref;
     this.service_key = options.service_key;
     this.bucket_name = options.bucket_name;
-    this.storage_url = `https://${this.project_ref}.supabase.co/storage/v1/object/public`;
+    this.storage_version = options.storage_version,
+    this.storage_url = `${options.api_url}/storage/${this.storage_version}/object/public`;
   }
 
   storageClient() {
     return new StorageClient(
-      `https://${this.project_ref}.supabase.co/storage/v1`,
+       `${api_url}/storage/${this.storage_version}`,
       {
         apiKey: this.service_key,
         Authorization: `Bearer ${this.service_key}`,
