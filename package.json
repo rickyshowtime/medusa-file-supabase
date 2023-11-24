@@ -34,7 +34,7 @@
     "prettier": "^2.8.1"
   },
   "scripts": {
-    "prepare": "cross-env NODE_ENV=production npm run build",
+    "prepare": "build",
     "build": "babel src --out-dir . --ignore **/__tests__ --extensions \".ts,.js\"",
     "watch": "babel -w src --out-dir . --ignore **/__tests__ --extensions \".ts,.js\""
   }
