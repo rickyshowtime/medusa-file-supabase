@@ -3,6 +3,8 @@ import { FileService } from 'medusa-interfaces';
 import { StorageClient } from '@supabase/storage-js';
 
 interface Options {
+  api_url: string;
+  storage_version: any;
   project_ref: string;
   service_key: string;
   bucket_name: string;
@@ -12,19 +14,24 @@ class SupabaseService extends FileService {
   project_ref: string;
   service_key: string;
   bucket_name: string;
+  storage_api: string;
   storage_url: string;
+  storage_version: any;
 
   constructor({}, options: Options) {
     super();
     this.project_ref = options.project_ref;
     this.service_key = options.service_key;
     this.bucket_name = options.bucket_name;
-    this.storage_url = `https://${this.project_ref}.supabase.co/storage/v1/object/public`;
+    this.storage_version = options.storage_version,
+    this.storage_version = options.storage_version,
+    this.storage_api = `${options.api_url}/storage/${this.storage_version}`;
+    this.storage_url = `${this.storage_api}/object/public`; //ToDo: implement support for private bucket
   }
 
   storageClient() {
     return new StorageClient(
-      `https://${this.project_ref}.supabase.co/storage/v1`,
+       this.storage_api,
       {
         apiKey: this.service_key,
         Authorization: `Bearer ${this.service_key}`,
@@ -36,7 +43,8 @@ class SupabaseService extends FileService {
   async upload(file: { path: string; originalname: string }) {
     const { data, error } = await this.storageClient()
       .from(this.bucket_name)
-      .upload(file.path, createReadStream(file.path), { duplex: "half" });
+        // @ts-ignore
+        .upload(file.path, createReadStream(file.path), { duplex: "half" });
 
     if (error) {
       console.log(error);

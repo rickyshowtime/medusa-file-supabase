@@ -29,13 +29,14 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
     _this.project_ref = options.project_ref;
     _this.service_key = options.service_key;
     _this.bucket_name = options.bucket_name;
-    _this.storage_url = "https://".concat(_this.project_ref, ".supabase.co/storage/v1/object/public");
+    _this.storage_version = options.storage_version, _this.storage_version = options.storage_version, _this.storage_api = "".concat(options.api_url, "/storage/").concat(_this.storage_version);
+    _this.storage_url = "".concat(_this.storage_api, "/object/public"); //ToDo: implement support for private bucket
     return _this;
   }
   (0, _createClass2["default"])(SupabaseService, [{
     key: "storageClient",
     value: function storageClient() {
-      return new _storageJs.StorageClient("https://".concat(this.project_ref, ".supabase.co/storage/v1"), {
+      return new _storageJs.StorageClient(this.storage_api, {
         apiKey: this.service_key,
         Authorization: "Bearer ".concat(this.service_key)
       });
@@ -52,7 +53,11 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
             switch (_context.prev = _context.next) {
               case 0:
                 _context.next = 2;
-                return this.storageClient().from(this.bucket_name).upload(file.path, (0, _fs.createReadStream)(file.path));
+                return this.storageClient().from(this.bucket_name)
+                // @ts-ignore
+                .upload(file.path, (0, _fs.createReadStream)(file.path), {
+                  duplex: "half"
+                });
               case 2:
                 _yield$this$storageCl = _context.sent;
                 data = _yield$this$storageCl.data;
