@@ -14,7 +14,7 @@
     "medusa-interfaces": "1.x"
   },
   "dependencies": {
-    "@medusajs/medusa": "^1.19.0",
+    "@medusajs/medusa": "1.18.1",
     "@medusajs/types": "^1.11.9",
     "@supabase/storage-js": "^2.1.0",
     "@types/multer": "^1.4.11",
