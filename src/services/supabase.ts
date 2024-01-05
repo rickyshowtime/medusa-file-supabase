@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import { createReadStream } from 'fs';
 import { StorageClient } from '@supabase/storage-js';
-import { AbstractFileService } from '@medusajs/medusa';
 import {
   DeleteFileType,
   FileServiceGetUploadStreamResult,
@@ -10,6 +9,7 @@ import {
   UploadStreamDescriptorType,
 } from '@medusajs/types';
 import { Readable } from 'node:stream';
+import { FileService } from 'medusa-interfaces';
 
 interface Options {
   api_url: string;
@@ -19,7 +19,7 @@ interface Options {
   bucket_name: string;
 }
 
-class SupabaseService extends AbstractFileService {
+class SupabaseService extends FileService {
   project_ref: string;
   service_key: string;
   bucket_name: string;
@@ -27,8 +27,8 @@ class SupabaseService extends AbstractFileService {
   storage_url: string;
   storage_version: any;
 
-  constructor(container: any, options: Options) {
-    super(container);
+  constructor({}: any, options: Options) {
+    super();
     this.project_ref = options.project_ref;
     this.service_key = options.service_key;
     this.bucket_name = options.bucket_name;

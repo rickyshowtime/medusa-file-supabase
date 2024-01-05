@@ -8,6 +8,7 @@ Object.defineProperty(exports, "__esModule", {
 exports["default"] = void 0;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+var _objectDestructuringEmpty2 = _interopRequireDefault(require("@babel/runtime/helpers/objectDestructuringEmpty"));
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
@@ -16,19 +17,20 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 var _fs = _interopRequireWildcard(require("fs"));
 var fs = _fs;
 var _storageJs = require("@supabase/storage-js");
-var _medusa = require("@medusajs/medusa");
 var _nodeStream = require("node:stream");
+var _medusaInterfaces = require("medusa-interfaces");
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
-var SupabaseService = /*#__PURE__*/function (_AbstractFileService) {
-  (0, _inherits2["default"])(SupabaseService, _AbstractFileService);
+var SupabaseService = /*#__PURE__*/function (_FileService) {
+  (0, _inherits2["default"])(SupabaseService, _FileService);
   var _super = _createSuper(SupabaseService);
-  function SupabaseService(container, options) {
+  function SupabaseService(_ref, options) {
     var _this;
+    (0, _objectDestructuringEmpty2["default"])(_ref);
     (0, _classCallCheck2["default"])(this, SupabaseService);
-    _this = _super.call(this, container);
+    _this = _super.call(this);
     _this.project_ref = options.project_ref;
     _this.service_key = options.service_key;
     _this.bucket_name = options.bucket_name;
@@ -93,12 +95,12 @@ var SupabaseService = /*#__PURE__*/function (_AbstractFileService) {
   }, {
     key: "getDownloadStream",
     value: function () {
-      var _getDownloadStream = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(_ref) {
-        var fileKey, _ref$isPrivate, isPrivate, _yield$this$storageCl2, data, error, buffer;
+      var _getDownloadStream = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(_ref2) {
+        var fileKey, _ref2$isPrivate, isPrivate, _yield$this$storageCl2, data, error, buffer;
         return _regenerator["default"].wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
-              fileKey = _ref.fileKey, _ref$isPrivate = _ref.isPrivate, isPrivate = _ref$isPrivate === void 0 ? true : _ref$isPrivate;
+              fileKey = _ref2.fileKey, _ref2$isPrivate = _ref2.isPrivate, isPrivate = _ref2$isPrivate === void 0 ? true : _ref2$isPrivate;
               _context2.next = 3;
               return this.storageClient().from(this.bucket_name).download(fileKey);
             case 3:
@@ -204,5 +206,5 @@ var SupabaseService = /*#__PURE__*/function (_AbstractFileService) {
     }()
   }]);
   return SupabaseService;
-}(_medusa.AbstractFileService);
+}(_medusaInterfaces.FileService);
 var _default = exports["default"] = SupabaseService;
