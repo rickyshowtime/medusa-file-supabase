@@ -42,44 +42,70 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
       });
     }
 
-    // @ts-ignore
+    //Implement fix for exports error: [object Object] this.fileService_.withTransaction(...).getUploadStreamDescriptor is not a function
   }, {
-    key: "upload",
+    key: "getUploadStreamDescriptor",
     value: function () {
-      var _upload = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(file) {
-        var _yield$this$storageCl, data, error;
+      var _getUploadStreamDescriptor = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(_ref2) {
+        var name, ext, _ref2$isPrivate, isPrivate, filePath, writeStream;
         return _regenerator["default"].wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                _context.next = 2;
-                return this.storageClient().from(this.bucket_name)
-                // @ts-ignore
-                .upload(file.path, (0, _fs.createReadStream)(file.path), {
-                  duplex: "half"
-                });
-              case 2:
-                _yield$this$storageCl = _context.sent;
-                data = _yield$this$storageCl.data;
-                error = _yield$this$storageCl.error;
-                if (!error) {
-                  _context.next = 8;
-                  break;
-                }
-                console.log(error);
-                throw error;
-              case 8:
-                return _context.abrupt("return", {
-                  url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(data.path)
-                });
-              case 9:
-              case "end":
-                return _context.stop();
-            }
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              name = _ref2.name, ext = _ref2.ext, _ref2$isPrivate = _ref2.isPrivate, isPrivate = _ref2$isPrivate === void 0 ? false : _ref2$isPrivate;
+              filePath = "".concat(isPrivate ? 'protected' : 'public', "/exports/").concat(name, ".").concat(ext);
+              writeStream = (0, _fs.createReadStream)(filePath);
+              return _context.abrupt("return", {
+                writeStream: writeStream,
+                promise: Promise.resolve(),
+                url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(filePath),
+                fileKey: filePath
+              });
+            case 4:
+            case "end":
+              return _context.stop();
           }
         }, _callee, this);
       }));
-      function upload(_x) {
+      function getUploadStreamDescriptor(_x) {
+        return _getUploadStreamDescriptor.apply(this, arguments);
+      }
+      return getUploadStreamDescriptor;
+    }() // @ts-ignore
+  }, {
+    key: "upload",
+    value: function () {
+      var _upload = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(file) {
+        var _yield$this$storageCl, data, error;
+        return _regenerator["default"].wrap(function _callee2$(_context2) {
+          while (1) switch (_context2.prev = _context2.next) {
+            case 0:
+              _context2.next = 2;
+              return this.storageClient().from(this.bucket_name)
+              // @ts-ignore
+              .upload(file.path, (0, _fs.createReadStream)(file.path), {
+                duplex: "half"
+              });
+            case 2:
+              _yield$this$storageCl = _context2.sent;
+              data = _yield$this$storageCl.data;
+              error = _yield$this$storageCl.error;
+              if (!error) {
+                _context2.next = 8;
+                break;
+              }
+              console.log(error);
+              throw error;
+            case 8:
+              return _context2.abrupt("return", {
+                url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(data.path)
+              });
+            case 9:
+            case "end":
+              return _context2.stop();
+          }
+        }, _callee2, this);
+      }));
+      function upload(_x2) {
         return _upload.apply(this, arguments);
       }
       return upload;
@@ -87,29 +113,27 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
   }, {
     key: "delete",
     value: function () {
-      var _delete2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(filepath) {
-        return _regenerator["default"].wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                _context2.prev = 0;
-                _context2.next = 3;
-                return this.storageClient().from(this.bucket_name).remove([filepath]);
-              case 3:
-                _context2.next = 8;
-                break;
-              case 5:
-                _context2.prev = 5;
-                _context2.t0 = _context2["catch"](0);
-                throw _context2.t0;
-              case 8:
-              case "end":
-                return _context2.stop();
-            }
+      var _delete2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(filepath) {
+        return _regenerator["default"].wrap(function _callee3$(_context3) {
+          while (1) switch (_context3.prev = _context3.next) {
+            case 0:
+              _context3.prev = 0;
+              _context3.next = 3;
+              return this.storageClient().from(this.bucket_name).remove([filepath]);
+            case 3:
+              _context3.next = 8;
+              break;
+            case 5:
+              _context3.prev = 5;
+              _context3.t0 = _context3["catch"](0);
+              throw _context3.t0;
+            case 8:
+            case "end":
+              return _context3.stop();
           }
-        }, _callee2, this, [[0, 5]]);
+        }, _callee3, this, [[0, 5]]);
       }));
-      function _delete(_x2) {
+      function _delete(_x3) {
         return _delete2.apply(this, arguments);
       }
       return _delete;
@@ -117,5 +141,4 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
   }]);
   return SupabaseService;
 }(_medusaInterfaces.FileService);
-var _default = SupabaseService;
-exports["default"] = _default;
+var _default = exports["default"] = SupabaseService;

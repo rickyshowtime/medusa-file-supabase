@@ -37,5 +37,9 @@
     "prepare": "cross-env NODE_ENV=production npm run build",
     "build": "babel src --out-dir . --ignore **/__tests__ --extensions \".ts,.js\"",
     "watch": "babel -w src --out-dir . --ignore **/__tests__ --extensions \".ts,.js\""
+  },
+  "packageManager": "yarn@4.0.2",
+  "volta": {
+    "node": "21.5.0"
   }
 }

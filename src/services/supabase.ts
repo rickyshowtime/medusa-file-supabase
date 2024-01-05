@@ -39,6 +39,19 @@ class SupabaseService extends FileService {
     );
   }
 
+  //Implement fix for exports error: [object Object] this.fileService_.withTransaction(...).getUploadStreamDescriptor is not a function
+  async getUploadStreamDescriptor({ name, ext, isPrivate = false }: { name: string; ext: string; isPrivate: boolean}) {
+    const filePath = `${isPrivate ? 'protected' : 'public'}/exports/${name}.${ext}`;
+    const writeStream = createReadStream(filePath);
+
+    return {
+      writeStream,
+      promise: Promise.resolve(),
+      url: `${this.storage_url}/${this.bucket_name}/${filePath}`,
+      fileKey: filePath,
+    };
+  }
+
   // @ts-ignore
   async upload(file: { path: string; originalname: string }) {
     const { data, error } = await this.storageClient()
