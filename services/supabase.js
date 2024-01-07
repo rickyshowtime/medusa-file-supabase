@@ -142,30 +142,31 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
     key: "upload",
     value: function () {
       var _upload = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(fileData) {
-        var _yield$this$storageCl3, data, error;
+        var filePath, _yield$this$storageCl3, data, error;
         return _regenerator["default"].wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
-              _context3.next = 2;
-              return this.storageClient().from(this.bucket_name).upload(fileData.path, (0, _fs.createReadStream)(fileData.originalname), {
+              filePath = "".concat(fileData.path, "/").concat(fileData.filename);
+              _context3.next = 3;
+              return this.storageClient().from(this.bucket_name).upload(filePath, (0, _fs.createReadStream)(fileData.buffer), {
                 duplex: "half"
               });
-            case 2:
+            case 3:
               _yield$this$storageCl3 = _context3.sent;
               data = _yield$this$storageCl3.data;
               error = _yield$this$storageCl3.error;
               if (!error) {
-                _context3.next = 8;
+                _context3.next = 9;
                 break;
               }
               console.log(error);
               throw error;
-            case 8:
+            case 9:
               return _context3.abrupt("return", {
                 url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(data.path),
                 key: data.path
               });
-            case 9:
+            case 10:
             case "end":
               return _context3.stop();
           }

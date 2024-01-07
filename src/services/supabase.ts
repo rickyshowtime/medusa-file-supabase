@@ -95,9 +95,9 @@ class SupabaseService extends FileService {
 
   // @ts-ignore
   async upload(fileData: Express.Multer.File): Promise<FileServiceUploadResult>  {
-
+    const filePath = `${fileData.path}/${fileData.filename}`
     const { data, error } = await this.storageClient()
-      .from(this.bucket_name).upload(fileData.path, createReadStream(fileData.originalname), { duplex: "half" });
+      .from(this.bucket_name).upload(filePath, createReadStream(fileData.buffer), { duplex: "half" });
 
     if (error) {
       console.log(error);
