@@ -1,7 +1,6 @@
 "use strict";
 
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
-var _typeof = require("@babel/runtime/helpers/typeof");
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
@@ -14,13 +13,10 @@ var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/creat
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-var _fs = _interopRequireWildcard(require("fs"));
-var fs = _fs;
+var _fs = require("fs");
 var _storageJs = require("@supabase/storage-js");
 var _nodeStream = require("node:stream");
 var _medusaInterfaces = require("medusa-interfaces");
-function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 var SupabaseService = /*#__PURE__*/function (_FileService) {
@@ -52,28 +48,27 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
     key: "getUploadStreamDescriptor",
     value: function () {
       var _getUploadStreamDescriptor = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(fileData) {
-        var filePath, fileName, writeStream, _yield$this$storageCl, data, error;
+        var parsedFilename, filePath, _yield$this$storageCl, data, error;
         return _regenerator["default"].wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              filePath = "".concat(fileData.isPrivate ? 'protected' : 'public', "/exports/");
-              fileName = "".concat(fileData.name, ".").concat(fileData.ext);
-              writeStream = fs.createWriteStream(filePath);
-              _context.next = 5;
-              return this.storageClient().from(this.bucket_name).upload(filePath, (0, _fs.createReadStream)(fileName), {
+              parsedFilename = parse(file.originalname);
+              filePath = "".concat(fileData.path, "/exports/").concat(parsedFilename.name, "-").concat(Date.now()).concat(parsedFilename.ext);
+              _context.next = 4;
+              return this.storageClient().from(this.bucket_name).upload(filePath, (0, _fs.createReadStream)(fileData.path), {
                 duplex: "half"
               });
-            case 5:
+            case 4:
               _yield$this$storageCl = _context.sent;
               data = _yield$this$storageCl.data;
               error = _yield$this$storageCl.error;
               if (!error) {
-                _context.next = 11;
+                _context.next = 10;
                 break;
               }
               console.log(error);
               throw error;
-            case 11:
+            case 10:
               return _context.abrupt("return", {
                 // @ts-ignore
                 writeStream: writeStream,
@@ -81,7 +76,7 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
                 url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(data.path),
                 fileKey: data.path
               });
-            case 12:
+            case 11:
             case "end":
               return _context.stop();
           }
@@ -142,31 +137,32 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
     key: "upload",
     value: function () {
       var _upload = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(fileData) {
-        var filePath, _yield$this$storageCl3, data, error;
+        var parsedFilename, filePath, _yield$this$storageCl3, data, error;
         return _regenerator["default"].wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
-              filePath = "".concat(fileData.path, "/").concat(fileData.filename);
-              _context3.next = 3;
-              return this.storageClient().from(this.bucket_name).upload(filePath, (0, _fs.createReadStream)(fileData.buffer), {
+              parsedFilename = parse(file.originalname);
+              filePath = "".concat(fileData.path, "/").concat(parsedFilename.name, "-").concat(Date.now()).concat(parsedFilename.ext);
+              _context3.next = 4;
+              return this.storageClient().from(this.bucket_name).upload(filePath, (0, _fs.createReadStream)(fileData.path), {
                 duplex: "half"
               });
-            case 3:
+            case 4:
               _yield$this$storageCl3 = _context3.sent;
               data = _yield$this$storageCl3.data;
               error = _yield$this$storageCl3.error;
               if (!error) {
-                _context3.next = 9;
+                _context3.next = 10;
                 break;
               }
               console.log(error);
               throw error;
-            case 9:
+            case 10:
               return _context3.abrupt("return", {
                 url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(data.path),
                 key: data.path
               });
-            case 10:
+            case 11:
             case "end":
               return _context3.stop();
           }
