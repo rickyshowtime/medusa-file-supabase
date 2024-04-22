@@ -50,11 +50,12 @@ class SupabaseService extends FileService {
 
   //Implement fix for exports error: [object Object] this.fileService_.withTransaction(...).getUploadStreamDescriptor is not a function
   async getUploadStreamDescriptor(fileData: UploadStreamDescriptorType): Promise<FileServiceGetUploadStreamResult> {
-    const filePath = `${fileData.isPrivate ? 'protected' : 'public'}/exports/`;
-    const fileName = `${fileData.name}.${fileData.ext}`;
-    const writeStream =  fs.createWriteStream(filePath);
+    const parsedFilename = parse(file.originalname)
+
+    const filePath = `${fileData.path}/exports/${parsedFilename.name}-${Date.now()}${parsedFilename.ext}`
+
     const { data, error } = await this.storageClient()
-      .from(this.bucket_name).upload(filePath, createReadStream(fileName), { duplex: "half" });
+      .from(this.bucket_name).upload(filePath, createReadStream(fileData.path), { duplex: "half" });
 
     if (error) {
       console.log(error);
@@ -95,9 +96,12 @@ class SupabaseService extends FileService {
 
   // @ts-ignore
   async upload(fileData: Express.Multer.File): Promise<FileServiceUploadResult>  {
-    const filePath = `${fileData.path}/${fileData.filename}`
+    const parsedFilename = parse(file.originalname)
+
+    const filePath = `${fileData.path}/${parsedFilename.name}-${Date.now()}${parsedFilename.ext}`
+
     const { data, error } = await this.storageClient()
-      .from(this.bucket_name).upload(filePath, createReadStream(fileData.buffer), { duplex: "half" });
+      .from(this.bucket_name).upload(filePath, createReadStream(fileData.path), { duplex: "half" });
 
     if (error) {
       console.log(error);
