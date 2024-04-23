@@ -13,6 +13,7 @@ import { FileService } from 'medusa-interfaces';
 import { parse } from 'path';
 import stream from "stream"
 import { finished } from 'stream/promises';
+import path from 'path';
 
 interface Options {
   api_url: string;
@@ -53,52 +54,58 @@ class SupabaseService extends FileService {
 
   async getUploadStreamDescriptor(fileData: UploadStreamDescriptorType) {
     const pass = new stream.PassThrough();
-    const chunks: Buffer[] = [];
+    const tempPath = 'exports'; // Ensure this directory exists or create it
 
-    const fileKey = `exports/${fileData.name}-${Date.now()}${fileData.ext}`;
-    console.log('Initialized upload with fileKey:', fileKey);
+    // Ensure temporary storage directory exists
+    if (!fs.existsSync(tempPath)) {
+      fs.mkdirSync(tempPath, { recursive: true });
+    }
 
-    // Promise to handle the complete process of buffering and uploading
-    const uploadPromise = new Promise(async (resolve, reject) => {
-      // Collect data into a buffer
-      pass.on('data', (chunk) => {
-          chunks.push(chunk);
-          console.log('Received chunk with length:', chunk.length);
+    const filename = fileData.name + (fileData.ext ? `.${fileData.ext}` : "");
+    const filePath = path.join(tempPath, `${Date.now()}-${filename}`);
+
+    // Collect data into a temporary file
+    const writeStream = fs.createWriteStream(filePath);
+    pass.pipe(writeStream);
+
+    const uploadPromise = new Promise((resolve, reject) => {
+      writeStream.on('finish', async () => {
+        // Simulate a Multer file object
+        const multerFile = {
+          originalname: filename,
+          path: filePath
+        };
+
+        // Use existing upload method
+        try {
+          const uploadResult = await this.upload(multerFile as Express.Multer.File);
+          resolve({
+            url: uploadResult.url,
+            fileKey: uploadResult.key,
+            writeStream: pass,
+            promise: Promise.resolve()
+          });
+        } catch (error) {
+          reject(error);
+        }
       });
 
-      try {
-        console.log('Waiting for all data to be passed...');
-        await finished(pass);
-        console.log('All data has been received.');
-
-        // Combine all chunks into a single buffer
-        const buffer = Buffer.concat(chunks);
-        console.log('Buffer created, size:', buffer.length);
-
-        // Execute the upload
-        console.log('Starting upload to Supabase...');
-        const { data, error } = await this.storageClient()
-            .from(this.bucket_name)
-            .upload(fileKey, buffer, { contentType: fileData.contentType as string});
-
-        if (error) {
-            console.error('Upload failed:', error);
-            reject(error);
-        } else {
-            console.log('Upload successful:', data.path);
-            resolve({ success: true, path: data.path });
-        }
-    } catch (error) {
-        console.error('Error during upload process:', error);
+      writeStream.on('error', (error) => {
+        console.error('Failed to write temporary file:', error);
         reject(error);
-    }
+      });
+
+      pass.on('error', (error) => {
+        console.error('Error in PassThrough stream:', error);
+        reject(error);
+      });
     });
 
     return {
       writeStream: pass,
       promise: uploadPromise,
-      url: `${this.storage_url}/${this.bucket_name}/${fileKey}`,
-      fileKey
+      url: `${this.storage_url}/${this.bucket_name}/${filePath}`,
+      filePath
     };
   }
 

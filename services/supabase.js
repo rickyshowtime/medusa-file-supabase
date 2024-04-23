@@ -1,6 +1,7 @@
 "use strict";
 
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
+var _typeof = require("@babel/runtime/helpers/typeof");
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
@@ -13,13 +14,15 @@ var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/creat
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-var _fs = require("fs");
+var _fs = _interopRequireWildcard(require("fs"));
+var fs = _fs;
 var _storageJs = require("@supabase/storage-js");
 var _nodeStream = require("node:stream");
 var _medusaInterfaces = require("medusa-interfaces");
-var _path = require("path");
+var _path = _interopRequireWildcard(require("path"));
 var _stream = _interopRequireDefault(require("stream"));
-var _promises = require("stream/promises");
+function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function _getRequireWildcardCache(e) { return e ? t : r; })(e); }
+function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != _typeof(e) && "function" != typeof e) return { "default": e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n["default"] = e, t && t.set(e, n), n; }
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 var SupabaseService = /*#__PURE__*/function (_FileService) {
@@ -50,82 +53,72 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
     value: function () {
       var _getUploadStreamDescriptor = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(fileData) {
         var _this2 = this;
-        var pass, chunks, fileKey, uploadPromise;
+        var pass, tempPath, filename, filePath, writeStream, uploadPromise;
         return _regenerator["default"].wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
               pass = new _stream["default"].PassThrough();
-              chunks = [];
-              fileKey = "exports/".concat(fileData.name, "-").concat(Date.now()).concat(fileData.ext);
-              console.log('Initialized upload with fileKey:', fileKey);
-
-              // Promise to handle the complete process of buffering and uploading
-              uploadPromise = new Promise( /*#__PURE__*/function () {
-                var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(resolve, reject) {
-                  var buffer, _yield$_this2$storage, data, error;
+              tempPath = 'exports'; // Ensure this directory exists or create it
+              // Ensure temporary storage directory exists
+              if (!fs.existsSync(tempPath)) {
+                fs.mkdirSync(tempPath, {
+                  recursive: true
+                });
+              }
+              filename = fileData.name + (fileData.ext ? ".".concat(fileData.ext) : "");
+              filePath = _path["default"].join(tempPath, "".concat(Date.now(), "-").concat(filename)); // Collect data into a temporary file
+              writeStream = fs.createWriteStream(filePath);
+              pass.pipe(writeStream);
+              uploadPromise = new Promise(function (resolve, reject) {
+                writeStream.on('finish', /*#__PURE__*/(0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee() {
+                  var multerFile, uploadResult;
                   return _regenerator["default"].wrap(function _callee$(_context) {
                     while (1) switch (_context.prev = _context.next) {
                       case 0:
-                        // Collect data into a buffer
-                        pass.on('data', function (chunk) {
-                          chunks.push(chunk);
-                          console.log('Received chunk with length:', chunk.length);
-                        });
+                        // Simulate a Multer file object
+                        multerFile = {
+                          originalname: filename,
+                          path: filePath
+                        }; // Use existing upload method
                         _context.prev = 1;
-                        console.log('Waiting for all data to be passed...');
-                        _context.next = 5;
-                        return (0, _promises.finished)(pass);
-                      case 5:
-                        console.log('All data has been received.');
-
-                        // Combine all chunks into a single buffer
-                        buffer = Buffer.concat(chunks);
-                        console.log('Buffer created, size:', buffer.length);
-
-                        // Execute the upload
-                        console.log('Starting upload to Supabase...');
-                        _context.next = 11;
-                        return _this2.storageClient().from(_this2.bucket_name).upload(fileKey, buffer, {
-                          contentType: fileData.contentType
+                        _context.next = 4;
+                        return _this2.upload(multerFile);
+                      case 4:
+                        uploadResult = _context.sent;
+                        resolve({
+                          url: uploadResult.url,
+                          fileKey: uploadResult.key,
+                          writeStream: pass,
+                          promise: Promise.resolve()
                         });
-                      case 11:
-                        _yield$_this2$storage = _context.sent;
-                        data = _yield$_this2$storage.data;
-                        error = _yield$_this2$storage.error;
-                        if (error) {
-                          console.error('Upload failed:', error);
-                          reject(error);
-                        } else {
-                          console.log('Upload successful:', data.path);
-                          resolve({
-                            success: true,
-                            path: data.path
-                          });
-                        }
-                        _context.next = 21;
+                        _context.next = 11;
                         break;
-                      case 17:
-                        _context.prev = 17;
+                      case 8:
+                        _context.prev = 8;
                         _context.t0 = _context["catch"](1);
-                        console.error('Error during upload process:', _context.t0);
                         reject(_context.t0);
-                      case 21:
+                      case 11:
                       case "end":
                         return _context.stop();
                     }
-                  }, _callee, null, [[1, 17]]);
-                }));
-                return function (_x2, _x3) {
-                  return _ref2.apply(this, arguments);
-                };
-              }());
+                  }, _callee, null, [[1, 8]]);
+                })));
+                writeStream.on('error', function (error) {
+                  console.error('Failed to write temporary file:', error);
+                  reject(error);
+                });
+                pass.on('error', function (error) {
+                  console.error('Error in PassThrough stream:', error);
+                  reject(error);
+                });
+              });
               return _context2.abrupt("return", {
                 writeStream: pass,
                 promise: uploadPromise,
-                url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(fileKey),
-                fileKey: fileKey
+                url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(filePath),
+                filePath: filePath
               });
-            case 6:
+            case 9:
             case "end":
               return _context2.stop();
           }
@@ -177,7 +170,7 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
           }
         }, _callee3, this, [[9, 18]]);
       }));
-      function getDownloadStream(_x4) {
+      function getDownloadStream(_x2) {
         return _getDownloadStream.apply(this, arguments);
       }
       return getDownloadStream;
@@ -217,7 +210,7 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
           }
         }, _callee4, this);
       }));
-      function upload(_x5) {
+      function upload(_x3) {
         return _upload.apply(this, arguments);
       }
       return upload;
@@ -245,7 +238,7 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
           }
         }, _callee5, this, [[0, 5]]);
       }));
-      function _delete(_x6) {
+      function _delete(_x4) {
         return _delete2.apply(this, arguments);
       }
       return _delete;
