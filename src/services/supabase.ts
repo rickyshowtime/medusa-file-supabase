@@ -12,6 +12,7 @@ import { Readable } from 'node:stream';
 import { FileService } from 'medusa-interfaces';
 import { parse } from 'path';
 import stream from "stream"
+import { finished } from 'stream/promises';
 
 interface Options {
   api_url: string;
@@ -52,15 +53,46 @@ class SupabaseService extends FileService {
 
   async getUploadStreamDescriptor(fileData: UploadStreamDescriptorType) {
     const pass = new stream.PassThrough();
+    const chunks: Buffer[] = [];
 
     const fileKey = `exports/${fileData.name}-${Date.now()}${fileData.ext}`;
-    const uploadPromise = this.storageClient()
-      .from(this.bucket_name)
-      .upload(fileKey, pass, { contentType: fileData.contentType as string })
-      .then((response) => {
-        if (response.error) throw response.error;
-        return { success: true, path: response.data.path };
+    console.log('Initialized upload with fileKey:', fileKey);
+
+    // Promise to handle the complete process of buffering and uploading
+    const uploadPromise = new Promise(async (resolve, reject) => {
+      // Collect data into a buffer
+      pass.on('data', (chunk) => {
+          chunks.push(chunk);
+          console.log('Received chunk with length:', chunk.length);
       });
+
+      try {
+        console.log('Waiting for all data to be passed...');
+        await finished(pass);
+        console.log('All data has been received.');
+
+        // Combine all chunks into a single buffer
+        const buffer = Buffer.concat(chunks);
+        console.log('Buffer created, size:', buffer.length);
+
+        // Execute the upload
+        console.log('Starting upload to Supabase...');
+        const { data, error } = await this.storageClient()
+            .from(this.bucket_name)
+            .upload(fileKey, buffer, { contentType: fileData.contentType as string});
+
+        if (error) {
+            console.error('Upload failed:', error);
+            reject(error);
+        } else {
+            console.log('Upload successful:', data.path);
+            resolve({ success: true, path: data.path });
+        }
+    } catch (error) {
+        console.error('Error during upload process:', error);
+        reject(error);
+    }
+    });
 
     return {
       writeStream: pass,
