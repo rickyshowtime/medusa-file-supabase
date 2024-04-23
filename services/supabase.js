@@ -18,6 +18,7 @@ var _storageJs = require("@supabase/storage-js");
 var _nodeStream = require("node:stream");
 var _medusaInterfaces = require("medusa-interfaces");
 var _path = require("path");
+var _stream = _interopRequireDefault(require("stream"));
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2["default"])(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2["default"])(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2["default"])(this, result); }; }
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 var SupabaseService = /*#__PURE__*/function (_FileService) {
@@ -43,40 +44,32 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
         Authorization: "Bearer ".concat(this.service_key)
       });
     }
-
-    //Implement fix for exports error: [object Object] this.fileService_.withTransaction(...).getUploadStreamDescriptor is not a function
   }, {
     key: "getUploadStreamDescriptor",
     value: function () {
       var _getUploadStreamDescriptor = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(fileData) {
-        var filePath, _yield$this$storageCl, data, error;
+        var pass, fileKey, uploadPromise;
         return _regenerator["default"].wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              filePath = "".concat(fileData.path, "/exports/").concat(fileData.name, "-").concat(Date.now()).concat(fileData.ext);
-              _context.next = 3;
-              return this.storageClient().from(this.bucket_name).upload(filePath, (0, _fs.createReadStream)(filePath), {
-                duplex: "half"
+              pass = new _stream["default"].PassThrough();
+              fileKey = "exports/".concat(fileData.name, "-").concat(Date.now()).concat(fileData.ext);
+              uploadPromise = this.storageClient().from(this.bucket_name).upload(fileKey, pass, {
+                contentType: fileData.contentType
+              }).then(function (response) {
+                if (response.error) throw response.error;
+                return {
+                  success: true,
+                  path: response.data.path
+                };
               });
-            case 3:
-              _yield$this$storageCl = _context.sent;
-              data = _yield$this$storageCl.data;
-              error = _yield$this$storageCl.error;
-              if (!error) {
-                _context.next = 9;
-                break;
-              }
-              console.log(error);
-              throw error;
-            case 9:
               return _context.abrupt("return", {
-                // @ts-ignore
-                writeStream: writeStream,
-                promise: Promise.resolve(),
-                url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(data.path),
-                fileKey: data.path
+                writeStream: pass,
+                promise: uploadPromise,
+                url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(fileKey),
+                fileKey: fileKey
               });
-            case 10:
+            case 4:
             case "end":
               return _context.stop();
           }
@@ -91,7 +84,7 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
     key: "getDownloadStream",
     value: function () {
       var _getDownloadStream = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(_ref2) {
-        var fileKey, _ref2$isPrivate, isPrivate, _yield$this$storageCl2, data, error, buffer;
+        var fileKey, _ref2$isPrivate, isPrivate, _yield$this$storageCl, data, error, buffer;
         return _regenerator["default"].wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
@@ -99,9 +92,9 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
               _context2.next = 3;
               return this.storageClient().from(this.bucket_name).download(fileKey);
             case 3:
-              _yield$this$storageCl2 = _context2.sent;
-              data = _yield$this$storageCl2.data;
-              error = _yield$this$storageCl2.error;
+              _yield$this$storageCl = _context2.sent;
+              data = _yield$this$storageCl.data;
+              error = _yield$this$storageCl.error;
               if (!error) {
                 _context2.next = 9;
                 break;
@@ -137,20 +130,20 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
     key: "upload",
     value: function () {
       var _upload = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(fileData) {
-        var parsedFilename, filePath, _yield$this$storageCl3, data, error;
+        var parsedFilename, filePath, _yield$this$storageCl2, data, error;
         return _regenerator["default"].wrap(function _callee3$(_context3) {
           while (1) switch (_context3.prev = _context3.next) {
             case 0:
               parsedFilename = (0, _path.parse)(fileData.originalname);
-              filePath = "".concat(fileData.path, "/").concat(parsedFilename.name, "-").concat(Date.now()).concat(parsedFilename.ext);
+              filePath = "".concat(parsedFilename.name, "-").concat(Date.now()).concat(parsedFilename.ext);
               _context3.next = 4;
               return this.storageClient().from(this.bucket_name).upload(filePath, (0, _fs.createReadStream)(fileData.path), {
                 duplex: "half"
               });
             case 4:
-              _yield$this$storageCl3 = _context3.sent;
-              data = _yield$this$storageCl3.data;
-              error = _yield$this$storageCl3.error;
+              _yield$this$storageCl2 = _context3.sent;
+              data = _yield$this$storageCl2.data;
+              error = _yield$this$storageCl2.error;
               if (!error) {
                 _context3.next = 10;
                 break;

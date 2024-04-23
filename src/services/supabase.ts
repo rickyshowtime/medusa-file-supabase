@@ -11,6 +11,7 @@ import {
 import { Readable } from 'node:stream';
 import { FileService } from 'medusa-interfaces';
 import { parse } from 'path';
+import stream from "stream"
 
 interface Options {
   api_url: string;
@@ -49,27 +50,26 @@ class SupabaseService extends FileService {
     );
   }
 
-  //Implement fix for exports error: [object Object] this.fileService_.withTransaction(...).getUploadStreamDescriptor is not a function
-  async getUploadStreamDescriptor(fileData: UploadStreamDescriptorType): Promise<FileServiceGetUploadStreamResult> {
+  async getUploadStreamDescriptor(fileData: UploadStreamDescriptorType) {
+    const pass = new stream.PassThrough();
 
-    const filePath = `${fileData.path}/exports/${fileData.name}-${Date.now()}${fileData.ext}`
-
-    const { data, error } = await this.storageClient()
-      .from(this.bucket_name).upload(filePath, createReadStream(filePath), { duplex: "half" });
-
-    if (error) {
-      console.log(error);
-      throw error;
-    }
+    const fileKey = `exports/${fileData.name}-${Date.now()}${fileData.ext}`;
+    const uploadPromise = this.storageClient()
+      .from(this.bucket_name)
+      .upload(fileKey, pass, { contentType: fileData.contentType as string })
+      .then((response) => {
+        if (response.error) throw response.error;
+        return { success: true, path: response.data.path };
+      });
 
     return {
-      // @ts-ignore
-      writeStream,
-      promise: Promise.resolve(),
-      url: `${this.storage_url}/${this.bucket_name}/${data.path}`,
-      fileKey: data.path,
+      writeStream: pass,
+      promise: uploadPromise,
+      url: `${this.storage_url}/${this.bucket_name}/${fileKey}`,
+      fileKey
     };
   }
+
 
   async getDownloadStream({
       fileKey,
@@ -98,7 +98,7 @@ class SupabaseService extends FileService {
   async upload(fileData: Express.Multer.File): Promise<FileServiceUploadResult>  {
     const parsedFilename = parse(fileData.originalname)
 
-    const filePath = `${fileData.path}/${parsedFilename.name}-${Date.now()}${parsedFilename.ext}`
+    const filePath = `${parsedFilename.name}-${Date.now()}${parsedFilename.ext}`
 
     const { data, error } = await this.storageClient()
       .from(this.bucket_name).upload(filePath, createReadStream(fileData.path), { duplex: "half" });
