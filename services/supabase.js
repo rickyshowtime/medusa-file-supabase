@@ -53,20 +53,30 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
     value: function () {
       var _getUploadStreamDescriptor = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(fileData) {
         var _this2 = this;
-        var pass, tempPath, filename, filePath, writeStream, uploadPromise;
+        var pass, tempPath, filename, filePath, directory, writeStream, uploadPromise;
         return _regenerator["default"].wrap(function _callee2$(_context2) {
           while (1) switch (_context2.prev = _context2.next) {
             case 0:
               pass = new _stream["default"].PassThrough();
-              tempPath = 'exports'; // Ensure this directory exists or create it
-              // Ensure temporary storage directory exists
+              tempPath = _path["default"].resolve('exports'); // Absolute path to avoid path confusion
+              // Ensure the temporary storage directory exists
               if (!fs.existsSync(tempPath)) {
                 fs.mkdirSync(tempPath, {
                   recursive: true
                 });
+                console.log('Created directory:', tempPath);
               }
               filename = fileData.name + (fileData.ext ? ".".concat(fileData.ext) : "");
-              filePath = _path["default"].join(tempPath, "".concat(Date.now(), "-").concat(filename)); // Collect data into a temporary file
+              filePath = _path["default"].join(tempPath, "".concat(filename)); // Ensure directory exists where the file will be stored
+              directory = _path["default"].dirname(filePath);
+              if (!fs.existsSync(directory)) {
+                fs.mkdirSync(directory, {
+                  recursive: true
+                });
+                console.log("Created missing directory:", directory);
+              }
+
+              // Collect data into a temporary file
               writeStream = fs.createWriteStream(filePath);
               pass.pipe(writeStream);
               uploadPromise = new Promise(function (resolve, reject) {
@@ -118,7 +128,7 @@ var SupabaseService = /*#__PURE__*/function (_FileService) {
                 url: "".concat(this.storage_url, "/").concat(this.bucket_name, "/").concat(filePath),
                 filePath: filePath
               });
-            case 9:
+            case 11:
             case "end":
               return _context2.stop();
           }

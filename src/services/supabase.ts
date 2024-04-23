@@ -54,15 +54,23 @@ class SupabaseService extends FileService {
 
   async getUploadStreamDescriptor(fileData: UploadStreamDescriptorType) {
     const pass = new stream.PassThrough();
-    const tempPath = 'exports'; // Ensure this directory exists or create it
+    const tempPath = path.resolve('exports'); // Absolute path to avoid path confusion
 
-    // Ensure temporary storage directory exists
+    // Ensure the temporary storage directory exists
     if (!fs.existsSync(tempPath)) {
       fs.mkdirSync(tempPath, { recursive: true });
+      console.log('Created directory:', tempPath);
     }
 
     const filename = fileData.name + (fileData.ext ? `.${fileData.ext}` : "");
-    const filePath = path.join(tempPath, `${Date.now()}-${filename}`);
+    const filePath = path.join(tempPath, `${filename}`);
+
+    // Ensure directory exists where the file will be stored
+    const directory = path.dirname(filePath);
+    if (!fs.existsSync(directory)) {
+        fs.mkdirSync(directory, { recursive: true });
+        console.log("Created missing directory:", directory);
+    }
 
     // Collect data into a temporary file
     const writeStream = fs.createWriteStream(filePath);
